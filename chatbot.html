@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wander AI Chatbot</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    /* Specific styles for chatbot page */
+    .chatbot-page {
+      padding: 80px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .chatbot-container {
+      width: 100%;
+      max-width: 600px;
+      height: 600px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    .chat-box {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .user-msg {
+      background: #ff9800;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 8px;
+      margin: 6px 0;
+      text-align: right;
+      align-self: flex-end;
+      white-space: pre-wrap;
+      /* Preserves newlines and spacing */
+    }
+
+    .bot-msg {
+      background: #eee;
+      color: #333;
+      padding: 8px 12px;
+      border-radius: 8px;
+      margin: 6px 0;
+      text-align: left;
+      align-self: flex-start;
+      white-space: pre-wrap;
+      /* Preserves newlines and spacing */
+    }
+
+    .chat-input-area {
+      display: flex;
+      border-top: 1px solid #ddd;
+    }
+
+    .chat-input-area input {
+      flex: 1;
+      padding: 15px;
+      border: none;
+      outline: none;
+      font-size: 16px;
+    }
+
+    .chat-input-area button {
+      padding: 15px 25px;
+      border: none;
+      background: #ff9800;
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s;
+      font-size: 16px;
+    }
+
+    .chat-input-area button:hover {
+      background: #e68900;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(20px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .user-msg,
+    .bot-msg {
+      animation: slideUp 0.3s ease-out;
+    }
+
+    .typing-indicator {
+      background: #eee;
+      padding: 10px 15px;
+      border-radius: 8px;
+      display: none;
+      /* Hidden by default */
+      align-self: flex-start;
+      margin: 6px 0;
+      width: fit-content;
+    }
+
+    .typing-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #888;
+      margin: 0 2px;
+      animation: bounce 1.4s infinite ease-in-out both;
+    }
+
+    .typing-dot:nth-child(1) {
+      animation-delay: -0.32s;
+    }
+
+    .typing-dot:nth-child(2) {
+      animation-delay: -0.16s;
+    }
+
+    @keyframes bounce {
+
+      0%,
+      80%,
+      100% {
+        transform: scale(0);
+      }
+
+      40% {
+        transform: scale(1);
+      }
+    }
+  </style>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+
+    // Firebase configuration from index.html
+    const firebaseConfig = {
+      apiKey: "AIzaSyCtG3X-ycPgIT17sk99tkCjxOsHc4jv4Ls",
+      authDomain: "go-vista.firebaseapp.com",
+      projectId: "go-vista",
+      storageBucket: "go-vista.appspot.com",
+      messagingSenderId: "177827888478",
+      appId: "1:177827888478:web:b167551b290548f56423cf"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // Auth check to protect the page
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        // User is signed out, redirect to the login page
+        window.location.href = "auth.html";
+      }
+    });
+  </script>
+</head>
+
+<body>
+  <header>
+    <nav>
+      <div class="logo">🌍 Wander AI</div>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="chatbot.html" class="active">Chatbot</a></li>
+        <li><a href="recommendation.html">Recommender</a></li>
+        <li><a href="vr.html">VR Tours</a></li>
+        <li><a href="auth.html" class="btn-primary">Login / Signup</a></li>
+      </ul>
+    </nav>
+  </header>
+  <section class="chatbot-page">
+    <h1>Wander AI Chatbot</h1>
+    <div class="chatbot-container">
+      <div id="chat-box" class="chat-box"></div>
+      <div id="typing-indicator" class="typing-indicator">
+        <span class="typing-dot"></span>
+        <span class="typing-dot"></span>
+        <span class="typing-dot"></span>
+      </div>
+      <div class="chat-input-area">
+        <input type="text" id="user-input" placeholder="Type your message..."
+          onkeypress="if(event.key === 'Enter') sendMessage()">
+        <button onclick="sendMessage()">Send</button>
+      </div>
+    </div>
+  </section>
+  <footer>
+    <p>&copy; 2025 Wander AI. All Rights Reserved.</p>
+  </footer>
+  <script src="script.js"></script>
+  <script>
+    // ==================== Chatbot Logic ====================
+    async function sendMessage() {
+      const userInputField = document.getElementById("user-input");
+      const userInput = userInputField.value.trim();
+      if (!userInput) return;
+
+      const chatBox = document.getElementById("chat-box");
+      const typingIndicator = document.getElementById("typing-indicator");
+
+      // Append user message
+      chatBox.innerHTML += `<div class="user-msg">You: ${userInput}</div>`;
+      userInputField.value = "";
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      // Show typing indicator
+      typingIndicator.style.display = "block";
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      try {
+        const response = await fetch("http://127.0.0.1:5000/chat/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: userInput })
+        });
+
+        const data = await response.json();
+
+        // Hide typing indicator
+        typingIndicator.style.display = "none";
+
+        if (response.ok && data.reply) {
+          chatBox.innerHTML += `<div class="bot-msg">Bot: ${data.reply}</div>`;
+        } else {
+          const errMsg = data.error || "Unknown error occurred.";
+          chatBox.innerHTML += `<div class="bot-msg" style="color: red;">Error: ${errMsg}</div>`;
+        }
+      } catch (err) {
+        // Hide typing indicator
+        typingIndicator.style.display = "none";
+        console.error("Connection Error:", err);
+        chatBox.innerHTML += `<div class="bot-msg" style="color: red;">
+          <strong>Connection Failed:</strong> The server is not responding.<br>
+          <small>Please ensure the backend server is running on port 5000.</small>
+        </div>`;
+      }
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+  </script>
+  <script type="module">
+    import { checkAuth } from './auth-manager.js';
+    document.addEventListener('DOMContentLoaded', async () => {
+      await checkAuth(true);
+    });
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Destination Recommender</title>
+  <link rel="stylesheet" href="style.css">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Poppins:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+
+    // Firebase configuration from index.html
+    const firebaseConfig = {
+      apiKey: "AIzaSyCtG3X-ycPgIT17sk99tkCjxOsHc4jv4Ls",
+      authDomain: "go-vista.firebaseapp.com",
+      projectId: "go-vista",
+      storageBucket: "go-vista.appspot.com",
+      messagingSenderId: "177827888478",
+      appId: "1:177827888478:web:b167551b290548f56423cf"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // Auth check to protect the page
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        // User is signed out, redirect to the login page
+        window.location.href = "auth.html";
+      }
+    });
+  </script>
+</head>
+
+<body>
+  <header>
+    <nav>
+      <div class="logo">🌍 Wander AI</div>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="chatbot.html">Chatbot</a></li>
+        <li><a href="recommendation.html" class="active">Recommender</a></li>
+        <li><a href="vr.html">VR Tours</a></li>
+        <li><a href="auth.html" class="btn-primary">Login / Signup</a></li>
+      </ul>
+    </nav>
+  </header>
+  <section class="recommender-container">
+    <div class="text-center">
+      <h2>AI Destination Recommender</h2>
+      <p class="text-secondary" style="margin-bottom: 40px; color: var(--color-text-light);">Discover your next
+        adventure with our intelligent travel engine.</p>
+    </div>
+
+    <div class="input-form">
+      <div>
+        <label for="budget"><i class="fas fa-wallet"></i> Max Budget</label>
+        <select id="budget">
+          <option value="500">$500</option>
+          <option value="1000">$1000</option>
+          <option value="2000">$2000</option>
+          <option value="5000">$5000+</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="season"><i class="fas fa-sun"></i> Season</label>
+        <select id="season">
+          <option value="Summer">Summer</option>
+          <option value="Winter">Winter</option>
+          <option value="Spring">Spring</option>
+          <option value="Autumn">Autumn</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="dtype"><i class="fas fa-map-signs"></i> Trip Type</label>
+        <select id="dtype">
+          <option value="Beach">Beach</option>
+          <option value="Mountain">Mountain</option>
+          <option value="City">City</option>
+          <option value="Adventure">Adventure</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="weather"><i class="fas fa-cloud-sun"></i> Preferred Weather</label>
+        <select id="weather">
+          <option value="sunny">Sunny</option>
+          <option value="cold">Cold</option>
+          <option value="rainy">Rainy</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="interest"><i class="fas fa-heart"></i> Main Interest</label>
+        <select id="interest">
+          <option value="adventure">Adventure</option>
+          <option value="history">History</option>
+          <option value="relax">Relaxation</option>
+        </select>
+      </div>
+
+      <button onclick="getRecommendation()">Find Ideal Destinations <i class="fas fa-arrow-right"></i></button>
+    </div>
+    <div id="recommendation-result"></div>
+  </section>
+
+  <!-- Itinerary Modal -->
+  <div id="itinerary-modal" class="modal-overlay">
+    <div class="modal-content">
+      <button class="close-modal-btn" onclick="closeModal()">&times;</button>
+      <h2 id="modal-destination">Destination Name</h2>
+      <div class="modal-subtitle">3-Day Immersive Itinerary</div>
+      <div id="modal-body">
+        <!-- Dynamic Content Here -->
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-content">
+      <p>&copy; 2025 Wander AI. All Rights Reserved.</p>
+      <div class="social-links-footer">
+        <a href="#"><i class="fab fa-facebook-f"></i></a>
+        <a href="#"><i class="fab fa-twitter"></i></a>
+        <a href="#"><i class="fab fa-instagram"></i></a>
+        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+      </div>
+    </div>
+  </footer>
+  <script src="script.js"></script>
+  <script>
+    async function getRecommendation() {
+      const budget = document.getElementById("budget").value;
+      const season = document.getElementById("season").value;
+      const dtype = document.getElementById("dtype").value;
+      const interest = document.getElementById("interest").value;
+      const climate = document.getElementById("weather").value;
+      const resultDiv = document.getElementById("recommendation-result");
+
+      resultDiv.innerHTML = "<h3 style='grid-column: 1/-1; text-align: center; color: var(--color-primary);'><i class='fas fa-spinner fa-spin'></i> Analyzing travel data...</h3>";
+
+      try {
+        const response = await fetch("http://127.0.0.1:5000/recommend/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            budget: parseInt(budget),
+            season,
+            type: dtype,
+            interest,
+            climate
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`Server responded with status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.length === 0 || data.recommendation) {
+          resultDiv.innerHTML = `<p style='grid-column: 1/-1; text-align: center;'>${data.recommendation || data.error || "No recommendations found. Try different filters."}</p>`;
+        } else {
+          resultDiv.innerHTML = ""; // Clear loader
+
+          // Process each recommendation
+          for (let index = 0; index < data.length; index++) {
+            const d = data[index];
+            const cardId = `rec-card-${index}`;
+            const tempId = `temp-${index}`;
+
+            // Creates card with placeholder for temperature
+            const cardHTML = `
+                        <div class="rec-card" id="${cardId}" style="animation-delay: ${0.1 * index}s;">
+                            <h3>${d.Destination}</h3>
+                            <div id="${tempId}" class="temp-badge" style="display:inline-block; padding: 4px 10px; background:#f0f0f0; border-radius:12px; font-size:0.8rem; margin-bottom:10px;"><i class="fas fa-spinner fa-spin"></i></div>
+                            
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px;">
+                                <p><i class="fas fa-globe"></i> <strong>Country:</strong> <br>${d.Country}</p>
+                                <p><i class="fas fa-tag"></i> <strong>Cost:</strong> <br>$${d.Cost.toFixed(2)}</p>
+                                <p><i class="fas fa-calendar"></i> <strong>Season:</strong> <br>${d.Season}</p>
+                                <p><i class="fas fa-mountain"></i> <strong>Type:</strong> <br>${d.Type}</p>
+                            </div>
+                            
+                            <button class="btn-plan" onclick="createPlan('${d.Destination.replace(/'/g, "\\'")}', '${d.Type}', '${d.Country.replace(/'/g, "\\'")}')">
+                                <i class="fas fa-map-marked-alt"></i> View Itinerary
+                            </button>
+                        </div>
+                    `;
+            resultDiv.insertAdjacentHTML('beforeend', cardHTML);
+
+            // Fetch temperature independently with Fallback Logic
+            fetchDestinationWeather(d.Destination, d.Country, tempId);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching recommendation:", error);
+        resultDiv.innerHTML = `<p style='grid-column: 1/-1; text-align: center; color: var(--color-error);'>There was an error connecting to the server. Please ensure your backend is running. <br>To run backend: <code>python app.py</code> in e:\\wander-ai\\backend</p>`;
+      }
+    }
+
+    // Function to fetch weather with fallback (City -> Country -> Error)
+    async function fetchDestinationWeather(city, country, elementId) {
+      try {
+        // Helper to try fetching by name
+        async function getCoords(name) {
+          const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(name)}&count=1&language=en&format=json`;
+          const res = await fetch(url);
+          return await res.json();
+        }
+
+        // 1. Try Specific City
+        let geoData = await getCoords(city);
+
+        // 2. If Failed, Try Country
+        if (!geoData.results || geoData.results.length === 0) {
+          geoData = await getCoords(country);
+        }
+
+        // 3. If Still Failed, Show N/A
+        if (!geoData.results || geoData.results.length === 0) {
+          const el = document.getElementById(elementId);
+          if (el) el.innerHTML = `<i class="fas fa-thermometer-half"></i> N/A`;
+          return;
+        }
+
+        const { latitude, longitude } = geoData.results[0];
+
+        // 4. Get Weather for Coords
+        const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`;
+        const weatherRes = await fetch(weatherUrl);
+        const weatherData = await weatherRes.json();
+
+        // 5. Update UI
+        const temp = Math.round(weatherData.current_weather.temperature);
+        const el = document.getElementById(elementId);
+        if (el) {
+          el.innerHTML = `<i class="fas fa-thermometer-half"></i> ${temp}°C`;
+          el.style.background = "#e3f2fd";
+          el.style.color = "#1565c0";
+        }
+
+      } catch (err) {
+        // console.error(`Weather fetch failed for ${city}:`, err);
+        const el = document.getElementById(elementId);
+        if (el) el.innerHTML = `<i class="fas fa-thermometer-half"></i> --`;
+      }
+    }
+
+    // Function to generate and show the formatted itinerary plan
+    function createPlan(destination, type, country) {
+      const modal = document.getElementById('itinerary-modal');
+      const title = document.getElementById('modal-destination');
+      const body = document.getElementById('modal-body');
+
+      title.innerText = destination;
+
+      const plan = generateItineraryText(destination, type);
+
+      // New Card-Based Layout
+      body.innerHTML = `
+            <div class="itinerary-grid">
+                <!-- Day 1 Card -->
+                <div class="day-card">
+                    <h4><i class="fas fa-plane-arrival"></i> Day 1: Arrival & Exploration</h4>
+                    <div class="day-activities">
+                        <div class="activity-item">
+                            <span class="time-badge">Morning</span>
+                            <span class="activity-text">${plan.day1.morning}</span>
+                        </div>
+                        <div class="activity-item">
+                            <span class="time-badge">Afternoon</span>
+                            <span class="activity-text">${plan.day1.afternoon}</span>
+                        </div>
+                        <div class="activity-item">
+                            <span class="time-badge">Evening</span>
+                            <span class="activity-text">${plan.day1.evening}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Day 2 Card -->
+                <div class="day-card">
+                    <h4><i class="fas fa-landmark"></i> Day 2: Culture & Sights</h4>
+                    <div class="day-activities">
+                        <div class="activity-item">
+                            <span class="time-badge">Morning</span>
+                            <span class="activity-text">${plan.day2.morning}</span>
+                        </div>
+                        <div class="activity-item">
+                            <span class="time-badge">Afternoon</span>
+                            <span class="activity-text">${plan.day2.afternoon}</span>
+                        </div>
+                        <div class="activity-item">
+                            <span class="time-badge">Evening</span>
+                            <span class="activity-text">${plan.day2.evening}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Day 3 Card -->
+                <div class="day-card">
+                    <h4><i class="fas fa-camera-retro"></i> Day 3: Adventure & Leisure</h4>
+                    <div class="day-activities">
+                        <div class="activity-item">
+                            <span class="time-badge">Morning</span>
+                            <span class="activity-text">${plan.day3.morning}</span>
+                        </div>
+                        <div class="activity-item">
+                            <span class="time-badge">Afternoon</span>
+                            <span class="activity-text">${plan.day3.afternoon}</span>
+                        </div>
+                        <div class="activity-item">
+                            <span class="time-badge">Evening</span>
+                            <span class="activity-text">${plan.day3.evening}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="itinerary-footer">
+                <div class="footer-box tip-box">
+                    <i class="fas fa-lightbulb"></i>
+                    <div class="box-content">
+                        <h5>Traveler Tip</h5>
+                        <p>${plan.proTip}</p>
+                    </div>
+                </div>
+                
+                 <div class="footer-box cost-box">
+                    <i class="fas fa-wallet"></i>
+                    <div class="box-content">
+                        <h5>Estimated Daily Budget</h5>
+                        <p>Approx. <strong>$${plan.dailyCost}</strong> / person</p>
+                    </div>
+                </div>
+            </div>
+        `;
+
+      modal.style.display = 'flex';
+      setTimeout(() => {
+        modal.classList.add('active');
+      }, 10);
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('itinerary-modal');
+      modal.classList.remove('active');
+      setTimeout(() => {
+        modal.style.display = 'none';
+      }, 300);
+    }
+
+    window.onclick = function (event) {
+      const modal = document.getElementById('itinerary-modal');
+      if (event.target == modal) {
+        closeModal();
+      }
+    }
+
+    function generateItineraryText(dest, type) {
+      const typeLower = type ? type.toLowerCase() : "city";
+
+      let plan = {
+        day1: { morning: "Check-in and refresh with local specialty coffee.", afternoon: "Orientation walk around the city center and main plaza.", evening: "Traditional welcome dinner at a recommended local eatery." },
+        day2: { morning: "Visit the most famous historical landmark or museum.", afternoon: "Explore local markets, street food, and artisan shops.", evening: "Enjoy sunset views from a scenic viewpoint or rooftop." },
+        day3: { morning: "Excursion to a nearby hidden gem or nature spot.", afternoon: "Last-minute souvenir shopping and leisure time.", evening: "Farewell feast at a top-rated fine dining restaurant." },
+        proTip: "Try to learn a few basic words of the local language; locals appreciate the effort!",
+        dailyCost: "50-80"
+      };
+
+      if (dest.includes("Paris") || typeLower.includes("city")) {
+        plan.day1.morning = `Breakfast at a sidewalk café in ${dest}.`;
+        plan.day1.afternoon = "Visit iconic museums and historic squares.";
+        plan.day1.evening = "Romantic dinner cruise on the river.";
+
+        plan.day2.morning = "Early access to main heritage sites to beat crowds.";
+        plan.day2.afternoon = "Wander through art districts and chic galleries.";
+        plan.day3.morning = "Relax in a famous city park or botanical garden.";
+        plan.proTip = "The Metro is the fastest way to get around; buy a pass.";
+        plan.dailyCost = "100-150";
+      }
+
+      if (typeLower.includes("beach")) {
+        plan.day1.morning = "Hit the beach immediately for a swim and sunbathing.";
+        plan.day1.afternoon = "Rent a scooter or bike to find hidden coves.";
+        plan.day1.evening = "Fresh seafood BBQ dinner right on the sand.";
+
+        plan.day2.morning = "Morning boat trip or guided snorkeling tour.";
+        plan.day2.afternoon = "Nap in a hammock or enjoy a beachside massage.";
+        plan.day3.morning = "Sunrise yoga session by the ocean.";
+        plan.proTip = "Avoid buying bottled water; bring a filter bottle to save money and plastic.";
+        plan.dailyCost = "40-70";
+      }
+
+      if (typeLower.includes("mountain") || typeLower.includes("adventure")) {
+        plan.day1.morning = "Gear check and acclimatization walk.";
+        plan.day1.afternoon = "Scenic cable car ride to the high peaks.";
+        plan.day1.evening = "Fondue or hearty stew by the fire in a cozy lodge.";
+
+        plan.day2.morning = "Full day trek to a spectacular glacial lake.";
+        plan.day2.afternoon = "Photography session at the summit viewpoint.";
+        plan.day3.morning = "Visit a local alpine village or working farm.";
+        plan.proTip = "Weather changes fast in the mountains—always pack a rain jacket.";
+        plan.dailyCost = "60-90";
+      }
+
+      return plan;
+    }
+  </script>
+  <script type="module">
+    import { checkAuth } from './auth-manager.js';
+    document.addEventListener('DOMContentLoaded', async () => {
+      await checkAuth(true);
+    });
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login / Signup - Wander AI</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="auth.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+
+<body class="auth-body">
+    <a href="index.html" class="back-home">
+        <i class="fas fa-arrow-left"></i> Back to Home
+    </a>
+
+    <div class="auth-wrapper">
+        <div class="auth-side-image">
+            <div class="auth-overlay-content">
+                <h2>Explore the World <br>with AI</h2>
+                <p>Join thousands of travelers using Wander AI to plan their dream journeys with intelligent
+                    recommendations and VR previews.</p>
+            </div>
+        </div>
+
+        <div class="auth-form-side">
+            <div class="auth-form-header">
+                <h2 id="form-title">Welcome Back</h2>
+                <p id="form-subtitle">Please enter your details to sign in.</p>
+            </div>
+
+            <form id="auth-form">
+                <div class="auth-input-group" id="name-group">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" placeholder="John Doe">
+                </div>
+
+                <div class="auth-input-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" placeholder="name@company.com" required>
+                </div>
+
+                <div class="auth-input-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="••••••••" required>
+                </div>
+
+                <button type="submit" id="auth-submit-btn" class="btn-primary">Sign In</button>
+            </form>
+
+            <div class="auth-footer">
+                <p id="toggle-text">Don't have an account? <span onclick="toggleForm()" id="toggle-btn">Create
+                        account</span></p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { login, signup } from './auth-manager.js';
+
+        let isLoginMode = true;
+
+        window.toggleForm = function () {
+            isLoginMode = !isLoginMode;
+
+            const formTitle = document.getElementById('form-title');
+            const formSubtitle = document.getElementById('form-subtitle');
+            const authButton = document.getElementById('auth-submit-btn');
+            const nameGroup = document.getElementById('name-group');
+            const toggleText = document.getElementById('toggle-text');
+            const toggleBtn = document.getElementById('toggle-btn');
+
+            if (isLoginMode) {
+                formTitle.innerText = 'Welcome Back';
+                formSubtitle.innerText = 'Please enter your details to sign in.';
+                authButton.innerText = 'Sign In';
+                nameGroup.classList.remove('visible');
+                document.getElementById('name').removeAttribute('required');
+                toggleText.innerHTML = "Don't have an account? <span onclick='toggleForm()' id='toggle-btn'>Create account</span>";
+            } else {
+                formTitle.innerText = 'Create Account';
+                formSubtitle.innerText = 'Start your journey with Wander AI today.';
+                authButton.innerText = 'Sign Up';
+                nameGroup.classList.add('visible');
+                document.getElementById('name').setAttribute('required', 'true');
+                toggleText.innerHTML = "Already have an account? <span onclick='toggleForm()' id='toggle-btn'>Sign In</span>";
+            }
+        };
+
+        document.getElementById('auth-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const name = document.getElementById('name').value;
+            const btn = document.getElementById('auth-submit-btn');
+
+            btn.disabled = true;
+            btn.innerText = isLoginMode ? 'Signing in...' : 'Creating account...';
+
+            try {
+                if (isLoginMode) {
+                    await login(email, password);
+                    alert('Login successful!');
+                } else {
+                    await signup(name, email, password);
+                    alert('Account created successfully!');
+                }
+                window.location.href = 'index.html';
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+                btn.disabled = false;
+                btn.innerText = isLoginMode ? 'Sign In' : 'Sign Up';
+            }
+        };
+    </script>
+</body>
+
+</html>

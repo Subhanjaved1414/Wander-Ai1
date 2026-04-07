@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wander AI - Intelligent Travel Planning</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Poppins:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- AOS Animation -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+</head>
+
+<body>
+    <header>
+        <nav>
+            <div class="logo">🌍 Wander AI</div>
+            <ul class="nav-links">
+                <li><a href="#hero">Home</a></li>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#about">Mission</a></li>
+                <li><a href="#gallery">Gallery</a></li>
+                <li><a href="#contact">Contact</a></li>
+                <li><a href="auth.html" class="btn-primary" id="auth-link">Login</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section id="hero">
+        <div id="hero-background-image"></div>
+        <div class="hero-content" data-aos="fade-up" data-aos-duration="1000">
+            <h1>Travel Smarter,<br>Not Harder</h1>
+            <p>Experience the future of travel with AI-driven itineraries, virtual reality previews, and personalized
+                recommendations.</p>
+            <a href="auth.html" class="btn-primary" id="get-started-btn">Start Your Journey</a>
+        </div>
+
+        <!-- Weather Widget (Hidden by default, shown by JS) -->
+        <div id="weather-widget" class="weather-widget" style="display: none;">
+            <div class="weather-icon" id="weather-icon"><i class="fas fa-cloud"></i></div>
+            <div class="weather-info">
+                <h3 id="weather-temp">--°C</h3>
+                <p id="weather-desc">Loading Weather...</p>
+                <p id="weather-location" style="font-size: 0.8rem;"><i class="fas fa-map-marker-alt"></i> Locating...
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="page-content">
+        <h2 data-aos="fade-up">Core Features</h2>
+        <div class="feature-card-container">
+            <div class="feature-card" data-aos="fade-up" data-aos-delay="100">
+                <a href="recommendation.html">
+                    <div class="icon-circle"><i class="fas fa-route"></i></div>
+                    <h3>Smart Planner</h3>
+                    <p>Get personalized travel suggestions based on your budget, season, and interests using advanced
+                        AI.</p>
+                </a>
+            </div>
+            <div class="feature-card" data-aos="fade-up" data-aos-delay="200">
+                <a href="chatbot.html">
+                    <div class="icon-circle"><i class="fas fa-comments"></i></div>
+                    <h3>AI Concierge</h3>
+                    <p>Chat with our intelligent bot for instant travel advice, itinerary adjustments, and local tips.
+                    </p>
+                </a>
+            </div>
+            <div class="feature-card" data-aos="fade-up" data-aos-delay="300">
+                <a href="vr.html">
+                    <div class="icon-circle"><i class="fas fa-vr-cardboard"></i></div>
+                    <h3>VR Immersion</h3>
+                    <p>Preview your destination in 360° VR before you book. Explore hotels, beaches, and landmarks.</p>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section id="about" class="page-content" style="background-color:white;">
+        <!-- Explicitly breaking contrast for this section -->
+        <h2 data-aos="fade-right">Our Vision</h2>
+        <div class="about-flex-container">
+            <div class="about-text" data-aos="fade-up" data-aos-delay="100">
+                <p>Wander AI is redefining how the world travels. We combine the predictive power of Artificial
+                    Intelligence with the immersive capabilities of Virtual Reality to eliminate the uncertainty of
+                    travel planning.</p>
+                <p>Founded by a team of data scientists and avid explorers, our mission is to make personalized,
+                    high-quality travel guidance accessible to everyone. Whether you're a backpacker on a budget or a
+                    luxury traveler, Wander AI curates the perfect trip for you.</p>
+            </div>
+            <div class="about-image-wrapper" data-aos="fade-left" data-aos-delay="200">
+                <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=2671&auto=format&fit=crop"
+                    alt="Team collaboration" class="about-us-image">
+            </div>
+        </div>
+    </section>
+
+    <section id="gallery" class="page-content">
+        <h2 data-aos="fade-down">Inspiration Gallery</h2>
+        <div class="gallery-container">
+            <img src="https://images.unsplash.com/photo-1613395877344-13d4c2ce5d4d?q=80&w=2670&auto=format&fit=crop"
+                alt="Santorini, Greece" data-aos="fade-up" data-aos-delay="0">
+            <img src="https://images.unsplash.com/photo-1540206351-d6465b3ac5c1?q=80&w=2673&auto=format&fit=crop"
+                alt="Bora Bora Luxury" data-aos="fade-up" data-aos-delay="100">
+            <img src="https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=2670&auto=format&fit=crop"
+                alt="Kyoto Streets" data-aos="fade-up" data-aos-delay="200">
+        </div>
+    </section>
+
+    <section id="why-choose-us" class="page-content">
+        <h2 data-aos="fade-down">Why Wander AI?</h2>
+        <div class="feature-card-container">
+            <div class="feature-card" data-aos="fade-up" data-aos-delay="100">
+                <div class="icon-circle"><i class="fas fa-brain"></i></div>
+                <h3>Data-Driven</h3>
+                <p>Our algorithms analyze millions of data points to ensure your itinerary is optimized for enjoyment
+                    and cost.</p>
+            </div>
+            <div class="feature-card" data-aos="fade-up" data-aos-delay="200">
+                <div class="icon-circle"><i class="fas fa-lock"></i></div>
+                <h3>Secure & Private</h3>
+                <p>Your travel preferences and personal data are encrypted and never shared with third parties.</p>
+            </div>
+            <div class="feature-card" data-aos="fade-up" data-aos-delay="300">
+                <div class="icon-circle"><i class="fas fa-globe-americas"></i></div>
+                <h3>10,000+ Destinations</h3>
+                <p>From popular tourist hubs to off-the-beaten-path villages, we cover the globe.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact" class="page-content">
+        <h2 data-aos="zoom-in">Get In Touch</h2>
+        <div class="contact-details-container">
+            <div class="contact-info-card" data-aos="fade-right">
+                <h3>Contact Information</h3>
+                <p style="margin-bottom: 30px;">Have questions? Our support team is here to help you 24/7.</p>
+                <p><i class="fas fa-envelope"></i> help@wanderai.com</p>
+                <p><i class="fas fa-phone"></i> +1 (800) WANDER-AI</p>
+                <p><i class="fas fa-map-marker-alt"></i> 123 Innovation Drive, Tech Valley, CA</p>
+            </div>
+            <form class="contact-form-new" data-aos="fade-left">
+                <h3>Send us a Message</h3>
+                <input type="text" placeholder="Your Name" required>
+                <input type="email" placeholder="Your Email" required>
+                <textarea placeholder="How can we help?" rows="4" required></textarea>
+                <button type="submit" class="btn-primary">Submit Inquiry</button>
+            </form>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-logo">
+                <p style="font-weight: 700; font-size: 1.2rem; margin-bottom: 10px;">🌍 Wander AI</p>
+                <p style="opacity: 0.7; font-size: 0.9rem;">&copy; 2025 Wander AI. All Rights Reserved.</p>
+            </div>
+            <div class="social-links-footer">
+                <a href="#"><i class="fab fa-facebook-f"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-linkedin-in"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Firebase SDKs & Auth Manager -->
+    <script type="module">
+        import { checkAuth, logout } from './auth-manager.js';
+
+        // Check Authentication and Redirect if not logged in
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = await checkAuth(true);
+
+            if (user) {
+                console.log("✅ Logged in as", user.email);
+                const authLink = document.getElementById("auth-link");
+                const getStartedBtn = document.getElementById("get-started-btn");
+
+                if (authLink) {
+                    authLink.innerHTML = `<i class="fas fa-user-circle"></i> ${user.displayName || 'User'}`;
+                    authLink.href = "#";
+                    authLink.onclick = async (e) => {
+                        e.preventDefault();
+                        if (confirm("Are you sure you want to logout?")) {
+                            await logout();
+                        }
+                    };
+                }
+
+                if (getStartedBtn) {
+                    getStartedBtn.innerText = "Resume Discovery";
+                    getStartedBtn.href = "#features";
+                }
+
+                // Show weather widget if function exists
+                if (window.showWeatherWidget) {
+                    window.showWeatherWidget();
+                }
+            }
+        });
+
+        // Header scroll effect
+        window.addEventListener('scroll', () => {
+            const header = document.querySelector('header');
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+    </script>
+    <script src="script.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({
+            duration: 800,
+            once: true,
+            offset: 100
+        });
+    </script>
+</body>
+
+</html>

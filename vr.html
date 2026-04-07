@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <title>VR City Explorer (Mapillary)</title>
+  <script src="https://aframe.io/releases/1.4.1/aframe.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #000;
+      color: #fff;
+    }
+
+    #overlay {
+      position: absolute;
+      z-index: 10;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      transition: opacity 0.5s ease-in-out;
+    }
+
+    #city-input-box {
+      pointer-events: auto;
+      margin-top: 6vh;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 18px;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
+      text-align: center;
+      animation: fadeIn 0.8s ease-in-out;
+    }
+
+    input[type="text"] {
+      padding: 8px 10px;
+      width: 320px;
+      border-radius: 6px;
+      border: none;
+      font-size: 16px;
+    }
+
+    button {
+      padding: 8px 12px;
+      margin-left: 8px;
+      border-radius: 6px;
+      border: none;
+      background: #1e90ff;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    #controls {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 11;
+      display: flex;
+      gap: 10px;
+      pointer-events: auto;
+    }
+
+    #status {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      z-index: 11;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 8px 10px;
+      border-radius: 8px;
+    }
+
+    #loading {
+      display: none;
+      margin-top: 10px;
+      font-size: 14px;
+      color: #ddd;
+    }
+
+    a-scene {
+      height: 100vh;
+      width: 100vw;
+      display: block;
+    }
+
+    #backBtn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      z-index: 11;
+      pointer-events: auto;
+    }
+
+    .small {
+      font-size: 13px;
+      color: #ddd;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="overlay">
+    <div id="city-input-box">
+      <h3 style="margin:6px 0 8px 0">Enter destination to explore (city or place)</h3>
+      <input id="city-name" type="text" placeholder="e.g. Athens, Greece or Santorini" />
+      <button id="exploreBtn">Explore</button>
+      <div id="loading" class="small">Loading…</div>
+      <div id="message" class="small"></div>
+    </div>
+  </div>
+
+  <div id="status" style="display:none"></div>
+  <button id="backBtn" style="display:none">⟵ Back</button>
+
+  <div id="vr-container" style="display:none">
+    <a-scene>
+      <a-sky id="vr-sky" rotation="0 -90 0" src=""></a-sky>
+      <a-entity camera look-controls position="0 1.6 0"></a-entity>
+    </a-scene>
+    <div id="controls" style="display:none">
+      <button id="prevBtn">◀ Prev</button>
+      <div id="counter" class="small" style="align-self:center">0 / 0</div>
+      <button id="nextBtn">Next ▶</button>
+    </div>
+  </div>
+
+  <script>
+    // ====== INSERT YOUR MAPILLARY TOKEN HERE ======
+    const MAPILLARY_TOKEN = "MLY|24580070468325331|e341628d36bb358424e063b85d7a52fa";
+    // ==============================================
+
+    const exploreBtn = document.getElementById("exploreBtn");
+    const loadingEl = document.getElementById("loading");
+    const messageEl = document.getElementById("message");
+    const vrContainer = document.getElementById("vr-container");
+    const cityBox = document.getElementById("city-input-box");
+    const statusEl = document.getElementById("status");
+    const backBtn = document.getElementById("backBtn");
+    const controls = document.getElementById("controls");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const counter = document.getElementById("counter");
+    const sky = document.getElementById("vr-sky");
+
+    let images = []; // array of image objects from Mapillary
+    let index = 0;
+
+    exploreBtn.addEventListener("click", () => startExplore());
+    backBtn.addEventListener("click", () => {
+      // Go back to search
+      vrContainer.style.display = "none";
+      cityBox.style.display = "block";
+      backBtn.style.display = "none";
+      controls.style.display = "none";
+      statusEl.style.display = "none";
+      sky.setAttribute("src", "");
+      images = []; index = 0;
+    });
+
+    prevBtn.addEventListener("click", () => {
+      if (images.length === 0) return;
+      index = (index - 1 + images.length) % images.length;
+      setSkyFromIndex();
+    });
+    nextBtn.addEventListener("click", () => {
+      if (images.length === 0) return;
+      index = (index + 1) % images.length;
+      setSkyFromIndex();
+    });
+
+    async function startExplore() {
+      const city = document.getElementById("city-name").value.trim();
+      if (!city) { alert("Please type a destination name."); return; }
+
+      // UI changes
+      loading(true, "Geocoding...");
+      messageEl.textContent = "";
+      cityBox.style.pointerEvents = "none";
+
+      try {
+        // 1) Geocode via Nominatim
+        const geoResp = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(city)}`);
+        const geoData = await geoResp.json();
+        if (!geoData || geoData.length === 0) {
+          loading(false);
+          cityBox.style.pointerEvents = "auto";
+          alert("Location not found. Try a more specific name (e.g., 'Athens, Greece').");
+          return;
+        }
+        const lat = parseFloat(geoData[0].lat);
+        const lon = parseFloat(geoData[0].lon);
+
+        // 2) Try Mapillary with progressive bbox sizes
+        const deltas = [0.02, 0.05, 0.15]; // progressively larger search radii
+        let found = false;
+        let attempt = 0;
+        for (const d of deltas) {
+          attempt++;
+          loading(true, `Searching Mapillary (attempt ${attempt})...`);
+          const bbox = `${lon - d},${lat - d},${lon + d},${lat + d}`;
+          const url = `https://graph.mapillary.com/images?access_token=${encodeURIComponent(MAPILLARY_TOKEN)}&fields=id,thumb_2048_url,thumb_1024_url,is_pano,geometry&bbox=${bbox}&limit=50`;
+
+          try {
+            const resp = await fetch(url);
+            const data = await resp.json();
+
+            if (data && data.data && data.data.length > 0) {
+              // prefer panoramas if available
+              const panoList = data.data.filter(it => it.is_pano === true);
+              images = panoList.length > 0 ? panoList : data.data.slice();
+              found = true;
+              break;
+            }
+          } catch (err) {
+            console.warn("Mapillary fetch error:", err);
+            // continue to next delta
+          }
+        }
+
+        loading(false);
+        cityBox.style.pointerEvents = "auto";
+
+        if (!found || images.length === 0) {
+          messageEl.textContent = "No Mapillary images found for this area. Try another city or expand search.";
+          alert("No images found in Mapillary for this location. You can try a different city or try again with a more specific place.");
+          return;
+        }
+
+        // show VR container and controls
+        cityBox.style.display = "none";
+        vrContainer.style.display = "block";
+        backBtn.style.display = "block";
+        controls.style.display = "flex";
+        statusEl.style.display = "block";
+
+        index = 0;
+        updateCounter();
+        setSkyFromIndex();
+        statusEl.textContent = `Showing ${images.length} images for ${city} (panorama preferred)`;
+      } catch (err) {
+        loading(false);
+        cityBox.style.pointerEvents = "auto";
+        console.error("Error in startExplore:", err);
+        alert("An error occurred. Check console for details.");
+      }
+    }
+
+    function setSkyFromIndex() {
+      if (!images || images.length === 0) return;
+      const img = images[index];
+      // choose best available URL
+      const url = img.thumb_2048_url || img.thumb_1024_url || (img.thumb ? img.thumb : null);
+      if (!url) {
+        alert("Selected image has no accessible URL.");
+        return;
+      }
+      // set sky texture
+      sky.setAttribute("src", url);
+      updateCounter();
+    }
+
+    function updateCounter() {
+      counter.textContent = `${index + 1} / ${images.length}`;
+    }
+
+    function loading(on, text = "") {
+      loadingEl.style.display = on ? "block" : "none";
+      loadingEl.textContent = on ? text : "";
+    }
+  </script>
+  <script type="module">
+    import { checkAuth } from './auth-manager.js';
+    document.addEventListener('DOMContentLoaded', async () => {
+      await checkAuth(true);
+    });
+  </script>
+</body>
+
+</html>
